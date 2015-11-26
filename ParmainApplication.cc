@@ -9,7 +9,6 @@
 #include "G4VisExecutive.hh"
 #endif
 
-#include "CLHEP/Random/MTwistEngine.h"
 #include "CLHEP/Random/RanluxEngine.h" 
 #include "MyDetectorConstruction.hh" 
 #include "MyPrimaryGeneratorAction.hh" 
@@ -32,10 +31,9 @@
 //MyDetectorConstruction *detector = 0;
 
 int main(int argc,char** argv) { 
-  //CLHEP::RanluxEngine defaultEngine( 1234567, 4 ); 
-  CLHEP::MTwistEngine defaultEngine(1234567);
+  CLHEP::RanluxEngine defaultEngine( 1234567, 4 ); 
   G4Random::setTheEngine( &defaultEngine );
-  G4long seed = time( NULL );
+  G4int seed = 1220515164;
   G4Random::setTheSeed( seed );
 
   G4cout << G4endl 
@@ -46,6 +44,8 @@ int main(int argc,char** argv) {
 #ifdef G4MULTITHREADED
   G4MTRunManager* runManager = new G4MTRunManager; // = new G4RunManager; 
   //G4int nt = 2;
+  // GF: note argv[1] : input file in batch
+  //              [2] : physics lists to use - optional
   //if ( argc > 1 ) nt = atoi( argv[1] ); 
   runManager->SetNumberOfThreads( 2 );
 #else
@@ -68,8 +68,21 @@ int main(int argc,char** argv) {
   runManager->SetUserInitialization(detector); 
 
   // --- Physics Lists ---
+  G4String namePL;
+  if ( argc > 2 ) { // The second argument, when present, is a Physics List.
+    namePL = argv[2];
+    G4cout << "ParFullCMS test using physics list " << namePL << G4endl;
+  } else {
+    namePL = "QGSP_BERT";
+    G4cout << "ParFullCMS using physics list QGSP_BERT (default)" << G4endl;
+  }
+
   G4PhysListFactory factory;
-  runManager->SetUserInitialization( factory.ReferencePhysList() );
+  if ( factory.IsReferencePhysList( namePL ) ) {
+    runManager->SetUserInitialization( factory.GetReferencePhysList( namePL ) );
+  } else {
+    G4cerr << "ERROR: Physics List " << namePL << " UNKNOWN!" << G4endl;
+  }
 
   //thePL->SetDefaultCutValue( 0.020 *mm ); // 20 microns 
 

@@ -53,7 +53,7 @@ set(PARFULLCMS_SCRIPTS
  bench0.g4
  bench1.g4
  mt.g4
- README
+ README.md
   )
 
 foreach(_script ${PARFULLCMS_SCRIPTS})
